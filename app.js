@@ -40,12 +40,24 @@ const firebaseConfig = {
   measurementId: "G-MPPE04B0ZT"
 };
 // Initialise Firebase app (guard against double-initialisation during hot reloads)
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
+// Firebase Initialize
+try {
 
-// Get a reference to the Realtime Database service
-const db = firebase.database();
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  // Get a reference to the Realtime Database service
+  const db = firebase.database();
+
+  console.log("✅ Firebase Connected");
+
+} catch (err) {
+
+  console.error("❌ Firebase Initialization Error:", err);
+  alert("Firebase connection failed.");
+
+}
 
 
 /* ══════════════════════════════════════════════════════════
@@ -161,27 +173,19 @@ sizes:[
  "Large"
 ],  desc:"Tender boneless thighs. Ideal for burgers and curries." },
   
-{ id:8,  name:"Whole Chicken",       cat:"Whole",    image:"image/new8.png", skin:skinOption, weights:[
-{
-  kg:"1 kg",
-  price:229,
-  mrp:359
- },
- {
-  kg:"2 kg",
-  price:459,
-  mrp:359
- },
- {
-  kg:"3 kg",
-  price:459,
-  mrp:599
- }
-], sizes:[
- "Small",
- "Medium",
- "Large"
-] ,   desc:"Full farm-fresh whole chicken. Dressed and ready to cook." },
+{ id:8,  name:"Whole Chicken",       cat:"Whole",    image:"image/new8.png", skin:skinOption,weights:[
+  {
+    kg:"1 kg",
+    price:279,
+    mrp:399
+  },
+  {
+    kg:"2 kg",
+    price:599,
+    mrp:699
+  }
+
+],  desc:"Full farm-fresh whole chicken. Dressed and ready to cook." },
   
 { id:14,  name:"Chicken whole leg",   cat:"Leg Piece",  image:"image/new14.jpeg", weights:[
 {
@@ -207,17 +211,17 @@ sizes:[
 
  { id:2,  name:"Chicken Leg Piece",   cat:"Leg Piece", image:"image/new20.png",weights:[
  {
-  kg:"500 g",
+  kg:"1 kg",
   price:249,
   mrp:299
  },
  {
-  kg:"1 kg",
+  kg:"2 kg",
   price:498,
   mrp:599
  },
  {
-  kg:"2 kg",
+  kg:"3 kg",
   price:996,
   mrp:1199
  }
@@ -253,17 +257,17 @@ sizes:[
 
 { id:13,  name:"Chicken Biriyani Cut",   cat:"Curry Cut",  image:"image/new13.jpeg", skin:skinOption, weights:[
 {
-  kg:"500 g",
+  kg:"1 kg",
   price:249,
   mrp:299
  },
  {
-  kg:"1 kg",
+  kg:"2 kg",
   price:498,
   mrp:599
  },
  {
-  kg:"2 kg",
+  kg:"3 kg",
   price:996,
   mrp:1199
  }
@@ -275,17 +279,17 @@ sizes:[
 
   { id:12, name:"Chicken Drumstick",   cat:"Leg Piece",image:"image/new12.png", weights:[
 {
-  kg:"500 g",
+  kg:"1 kg",
   price:249,
   mrp:299
  },
  {
-  kg:"1 kg",
+  kg:"2 kg",
   price:498,
   mrp:599
  },
  {
-  kg:"2 kg",
+  kg:"3 kg",
   price:996,
   mrp:1199
  }
@@ -412,19 +416,30 @@ sizes:[
 let cart        = {};   // { productId: quantity }
 let currentProd = null; // product object shown in detail page
 let detQtyVal   = 1;    // quantity selected on detail page
-let currentPage = "home";
+let currentView = "home";
+let currentPage = 1;
 let currentSort = "popular";
 const productsPerPage = 10;
 let selectedSlot = "10 AM - 12 PM"; // default delivery slot
-
+let discountAmount = 0;
+let couponCode = "";
 let reviewProductId = null;
 let reviewRating = 0;
+let isPlacingOrder = false;
 
 let ratings = {
-overall:0,
-freshness:0,
-packing:0
+  overall: 0,
+  freshness: 0,
+  packing: 0
 };
+document.querySelectorAll(".stars span").forEach(s=>{
+    s.classList.remove("active");
+});
+
+const reviewText = document.getElementById("review-text");
+if(reviewText){
+    reviewText.value = "";
+}
 
 /* ══════════════════════════════════════════════════════════
    § NAVIGATION — Page Routing
@@ -454,7 +469,7 @@ function showPage(p) {
   }
 
 
-  currentPage = p;
+  currentView = p;
 
 
 
@@ -568,7 +583,13 @@ function productCardHTML(p) {
   const displayPrice = p.weights ? p.weights[0].price : p.price;
 const displayMrp = p.weights ? p.weights[0].mrp : p.mrp;
 
-const discount = Math.round(((displayMrp - displayPrice) / displayMrp) * 100);
+let discount = 0;
+
+if (displayMrp && displayMrp > displayPrice) {
+    discount = Math.round(
+        ((displayMrp - displayPrice) / displayMrp) * 100
+    );
+}
   return `
     <div class="product-card" onclick="showDetail(${p.id})">
       <div class="product-img">
@@ -915,22 +936,37 @@ if(!selectedWeight){
 
 }
 
-if(!selectedSize){
- selectedSize = currentProd.sizes[0];
+if (!selectedSize) {
+    selectedSize = currentProd.sizes ? currentProd.sizes[0] : "";
 }
 
-cart[currentProd.id] = {
+if (cart[currentProd.id]) {
 
- product: currentProd,
+  cart[currentProd.id].qty += detQtyVal;
 
- qty: detQtyVal,
+  cart[currentProd.id].weight = selectedWeight;
 
- weight: selectedWeight,
+  cart[currentProd.id].size = selectedSize;
 
-size: selectedSize,
-skin: selectedSkin
+  cart[currentProd.id].skin = selectedSkin;
 
-};
+} else {
+
+  cart[currentProd.id] = {
+
+    product: currentProd,
+
+    qty: detQtyVal,
+
+    weight: selectedWeight,
+
+    size: selectedSize,
+
+    skin: selectedSkin
+
+  };
+
+}
 
 
 updateBadges();
@@ -942,7 +978,7 @@ toast(`${currentProd.name} added to cart 🎉`);
 /** One-click add from product card */
 function quickAdd(id) {
 
-  const p = products.find(x => x.id === id);
+  const p = cart[id].product;
 
   if(!p) return;
 
@@ -957,7 +993,7 @@ function quickAdd(id) {
     price: p.weights[0].price,
     mrp: p.weights[0].mrp
   },
-  size: p.sizes[0],
+  size: p.sizes ? p.sizes[0] : "",
   skin: p.skin ? p.skin[0] : ""
 };
 
@@ -965,7 +1001,24 @@ function quickAdd(id) {
 
     cart[id].qty++;
 
-  }
+    // Backward compatibility
+    if (!cart[id].weight) {
+        cart[id].weight = {
+            kg: p.weights?.[0]?.kg || "",
+            price: p.weights?.[0]?.price || p.price || 0,
+            mrp: p.weights?.[0]?.mrp || p.mrp || 0
+        };
+    }
+
+    if (!cart[id].size) {
+        cart[id].size = p.sizes ? p.sizes[0] : "";
+    }
+
+    if (!cart[id].skin) {
+        cart[id].skin = p.skin ? p.skin[0] : "";
+    }
+
+}
 
 
   updateBadges();
@@ -986,10 +1039,11 @@ selectedWeight = {
  mrp: product.weights[0].mrp
 };
 
-selectedSize = product.sizes[0];
+selectedSize = product.sizes ? product.sizes[0] : "";
 selectedSkin = product.skin ? product.skin[0] : "";
 
 let w=document.getElementById("weight-box");
+if(!w) return;
 
 w.innerHTML="";
 
@@ -1044,31 +1098,34 @@ ${x}
 }
 
 
-let s=document.getElementById("size-box");
+let s = document.getElementById("size-box");
 
-s.innerHTML="";
+if (s) {
+    s.innerHTML = "";
 
+    if (product.sizes && product.sizes.length > 0) {
 
-product.sizes.forEach((x,i)=>{
+        product.sizes.forEach((x,i)=>{
 
+            s.innerHTML += `
+            <div class="weight-opt ${i==0?'active':''}"
+            onclick="selectSize('${x}',this)">
+                ${x}
+            </div>
+            `;
 
-s.innerHTML += `
+        });
 
-<div class="weight-opt"
+        s.style.display = "flex";
 
-onclick="selectSize('${x}',this)">
+    } else {
 
-${x}
+        s.style.display = "none";
 
-</div>
-
-`;
-
-});
-
-
+    }
 }
 
+}
 function selectSkin(type,el){
 
 selectedSkin = type;
@@ -1133,9 +1190,56 @@ function updateBadges() {
   if (mobBadge) mobBadge.textContent = total;
 
   // also sync localStorage cart (IMPORTANT)
-  localStorage.setItem("cart", JSON.stringify(cart));
+  localStorage.setItem("deecuts_cart", JSON.stringify(cart));
 }
 
+const saved = localStorage.getItem("deecuts_cart");
+
+if (saved) {
+
+  try {
+
+    cart = JSON.parse(saved);
+
+    couponCode = localStorage.getItem("couponCode") || "";
+
+if (couponCode) {
+
+  let subtotal = 0;
+
+  Object.values(cart).forEach(item => {
+    subtotal += item.weight.price * item.qty;
+  });
+
+  switch (couponCode) {
+
+    case "DEECUTS10":
+      discountAmount = Math.round(subtotal * 0.10);
+      break;
+
+    case "SAVE50":
+      discountAmount = 50;
+      break;
+
+    case "FIRST100":
+      discountAmount = 100;
+      break;
+
+  }
+
+}
+
+  } catch (err) {
+
+    console.error("Invalid cart data:", err);
+
+    cart = {};
+
+    localStorage.removeItem("deecuts_cart");
+
+  }
+
+}
 
 /* ══════════════════════════════════════════════════════════
    § CART PAGE — Render Full Cart
@@ -1144,6 +1248,12 @@ function updateBadges() {
 function renderCart() {
   const keys = Object.keys(cart);
   const el   = document.getElementById("cart-content");
+  // Reset invalid discount
+if (Object.keys(cart).length === 0) {
+    discountAmount = 0;
+    couponCode = "";
+}
+
   if (!el) return;
 
   // Empty state
@@ -1164,7 +1274,9 @@ onclick="showPage('shop')">Shop Now →</button>
   let subtotal = 0;
   const rows = keys.map(id => {
     const p    = products.find(x => x.id == id);
-    const line = cart[id].weight.price * cart[id].qty;
+    const price = cart[id].weight?.price || p.weights?.[0]?.price || p.price || 0;
+
+const line = price * cart[id].qty;
     subtotal  += line;
     return `
       <div class="cart-row">
@@ -1175,12 +1287,18 @@ onclick="showPage('shop')">Shop Now →</button>
           <div>
             <div class="cart-prod-name">${p.name}</div>
             <div class="cart-prod-wt">
+
 ${cart[id].weight?.kg || p.weights?.[0]?.kg || ""}
+
+${cart[id].size ? " | " + cart[id].size : ""}
+
+${cart[id].skin ? " | " + cart[id].skin : ""}
+
 </div>
           </div>
         </div>
         <div class="cart-price-col">
-₹${cart[id].weight.price}
+₹${price}
 </div>
         <div class="cart-qty">
           <button class="cqb" onclick="chgCart(${id},-1)">−</button>
@@ -1193,8 +1311,12 @@ ${cart[id].weight?.kg || p.weights?.[0]?.kg || ""}
   }).join("");
 
   const delivery = subtotal >= 399 ? 0 : 49; // free delivery above ₹499
-  const gst      = Math.round(subtotal * 0.05);
-  const total    = subtotal + delivery + gst;
+  const gst      = Math.round(subtotal * 0.01);
+  const total =
+subtotal
+- discountAmount
++ delivery
++ gst;
 
   el.innerHTML = `
     <div class="cart-layout">
@@ -1211,7 +1333,7 @@ ${cart[id].weight?.kg || p.weights?.[0]?.kg || ""}
 id="coupon-input"
 class="coupon-input"
 placeholder="Have a coupon? Apply Here"
-value="${localStorage.getItem('couponMessage') || ''}"
+value="${localStorage.getItem('couponCode') || ''}"
 >
 
 <button 
@@ -1233,7 +1355,7 @@ Apply
           <span>Delivery Charge</span>
           <span>${delivery === 0 ? '<span style="color:var(--green)">FREE</span>' : '₹' + delivery}</span>
         </div>
-        <div class="summary-row"><span>GST (5%)</span><span>₹${gst}</span></div>
+        <div class="summary-row"><span>GST (1%)</span><span>₹${gst}</span></div>
         <div class="summary-row total"><span>Total</span><span>₹${total}</span></div>
         ${subtotal < 399 ? `<div style="font-size:11px;color:var(--green);text-align:center;margin-bottom:8px">Add ₹${399 - subtotal} more for FREE delivery!</div>` : ""}
         <div class="secure-badge">🔒 Your details are safe with us.</div>
@@ -1255,36 +1377,55 @@ function saveCoupon(value){
 
 function applyCoupon(){
 
-  const coupon =
-  document.getElementById("coupon-input").value.trim();
-
-
-  if(!coupon){
-
-    alert("Enter coupon message");
-
+const code=document.getElementById("coupon-input")
+.value.trim().toUpperCase();
+// Prevent applying the same coupon again
+if (couponCode !== "") {
+    toast("Coupon already applied ✅");
     return;
+}
+discountAmount = 0;
+couponCode = "";
 
-  }
+let subtotal = 0;
 
+Object.values(cart).forEach(item=>{
+subtotal += item.weight.price * item.qty;
+});
 
-  localStorage.setItem(
-    "couponMessage",
-    coupon
-  );
+switch(code){
 
+case "DEECUTS10":
+discountAmount = Math.round(subtotal * 0.10);
+couponCode = code;
+toast("10% Discount Applied");
+break;
 
-  console.log(
-    "Coupon Applied:",
-    coupon
-  );
+case "SAVE50":
+discountAmount = 50;
+couponCode = code;
+toast("₹50 Discount Applied");
+break;
 
+case "FIRST100":
+discountAmount = 100;
+couponCode = code;
+toast("₹100 Discount Applied");
+break;
 
-  toast("Coupon saved ✅");
+default:
+alert("Invalid Coupon");
+return;
 
 }
 
-window.applyCoupon = applyCoupon;
+localStorage.setItem("couponCode",couponCode);
+saveCoupon(code);
+renderCart();
+
+}
+
+
 
 /** Change cart item quantity (handles zero → remove) */
 function chgCart(id, d) {
@@ -1316,8 +1457,15 @@ function renderCheckout() {
   let subtotal = 0;
 
   const itemsHTML = keys.map(id => {
-    const p = products.find(x => x.id == id);
-    subtotal += cart[id].weight.price * cart[id].qty;
+    const item = cart[id];
+const p = item.product;
+   const price =
+  cart[id].weight?.price ||
+  p.weights?.[0]?.price ||
+  p.price ||
+  0;
+
+subtotal += price * cart[id].qty;
     return `
       <div class="order-item-row">
         <div class="order-item-img">
@@ -1326,18 +1474,25 @@ function renderCheckout() {
         <div style="flex:1">
           <div class="order-item-name">${p.name}</div>
           <div class="order-item-wt">
-${cart[id].weight.kg} | ${cart[id].size} × ${cart[id].qty}
+${cart[id].weight?.kg || p.weights?.[0]?.kg || ""}
+${cart[id].size ? " | " + cart[id].size : ""}
+${cart[id].skin ? " | " + cart[id].skin : ""}
+× ${cart[id].qty}
 </div>
         </div>
        <div class="order-item-price">
-₹${cart[id].weight.price * cart[id].qty}
+₹${price * cart[id].qty}
 </div>
       </div>`;
   }).join("");
 
   const delivery = subtotal >= 399 ? 0 : 49;
-  const gst      = Math.round(subtotal * 0.05);
-  const total    = subtotal + delivery + gst;
+  const gst      = Math.round(subtotal * 0.01);
+  const total =
+subtotal
+- discountAmount
++ delivery
++ gst;
 
   const coItems  = document.getElementById("co-items");
   const coTotals = document.getElementById("co-totals");
@@ -1346,7 +1501,7 @@ ${cart[id].weight.kg} | ${cart[id].size} × ${cart[id].qty}
   if (coTotals) coTotals.innerHTML = `
     <div class="summary-row" style="margin-top:12px"><span>Subtotal</span><span>₹${subtotal}</span></div>
     <div class="summary-row"><span>Delivery</span><span>${delivery === 0 ? '<span style="color:var(--green)">FREE</span>' : '₹' + delivery}</span></div>
-    <div class="summary-row"><span>GST (5%)</span><span>₹${gst}</span></div>
+    <div class="summary-row"><span>GST (1%)</span><span>₹${gst}</span></div>
     <div class="summary-row total"><span>Total</span><span>₹${total}</span></div>`;
 }
 
@@ -1375,6 +1530,13 @@ function selPay(el) {
  * Called by the "Place Order" button in the checkout page.
  */
 async function placeOrder() {
+
+  if (isPlacingOrder) {
+  return;
+}
+
+isPlacingOrder = true;
+
   // ── 1. Read form fields ──
   const nameEl  = document.getElementById("c-name");
   const phoneEl = document.getElementById("c-phone");
@@ -1394,7 +1556,7 @@ async function placeOrder() {
     if (nameEl) nameEl.focus();
     return;
   }
-  if (!customerPhone || customerPhone.length < 10) {
+  if (!customerPhone || !/^[0-9]{10}$/.test(customerPhone)) {
     alert("⚠️ Please enter a valid 10-digit phone number.");
     if (phoneEl) phoneEl.focus();
     return;
@@ -1416,10 +1578,14 @@ async function placeOrder() {
   // ── 4. Build cart items array & calculate totals ──
   let subtotal    = 0;
   let totalItems  = 0;
-  const cartItems = cartKeys.map(id => {
+ const cartItems = cartKeys
+  .map(id => {
     const p     = products.find(x => x.id == id);
     const qty = cart[id].qty;
-
+if (!p) {
+  console.warn("Product not found:", id);
+  return null;
+}
 const price = cart[id].weight 
 ? cart[id].weight.price 
 : p.price;
@@ -1438,11 +1604,15 @@ const line = price * qty;
       quantity:    qty,
       lineTotal:   line
     };
-  });
+  }).filter(item => item !== null);
 
   const delivery    = subtotal >= 399 ? 0 : 49;
-  const gst         = Math.round(subtotal * 0.05);
-  const totalAmount = subtotal + delivery + gst;
+  const gst         = Math.round(subtotal * 0.01);
+  const total =
+subtotal
+- discountAmount
++ delivery
++ gst;
 
   // ── 5. Get selected payment method label ──
   const paySelected = document.querySelector(".pay-opt.sel .pay-opt-name");
@@ -1463,7 +1633,7 @@ const line = price * qty;
     subtotal,
     deliveryCharge:  delivery,
     gstAmount:       gst,
-    totalAmount,
+    totalAmount: total,
 
     // Delivery & payment
     deliverySlot:    selectedSlot  || "10 AM - 12 PM",
@@ -1474,8 +1644,12 @@ const line = price * qty;
     createdAt:       new Date().toISOString(),
     timestamp: firebase.database.ServerValue.TIMESTAMP,
 
-couponMessage: localStorage.getItem("couponMessage") || ""
+couponCode: couponCode || "",
 
+couponDiscount: discountAmount || 0,
+
+couponMessage:
+localStorage.getItem("couponMessage") || ""
     //coubon data
 
   };
@@ -1555,7 +1729,7 @@ ${cartItems.map(i =>
 `${i.productName} - ${i.weight} - ${i.skin || ""} x ${i.quantity}`
 ).join("\n")}
 
-Total Amount: ₹${totalAmount}
+Total Amount: ₹${total}
 
 Payment: ${paymentMethod}
 
@@ -1588,9 +1762,7 @@ console.log("ORDER HISTORY SAVED");
 
 // CLEAR CART AFTER SAVING
 
-cart = {};
-
-updateBadges();
+//cart = {};updateBadges();
 
 
 // success flag
@@ -1603,10 +1775,8 @@ localStorage.setItem(
 
 
 // CLEAR CART
-
-cart = {};
-
-updateBadges();
+//cart = {};
+//updateBadges();
 
 
 
@@ -1615,7 +1785,11 @@ updateBadges();
 const whatsappURL =
 `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMsg)}`;
 
+couponCode = "";
+discountAmount = 0;
 
+localStorage.removeItem("couponCode");
+localStorage.removeItem("couponMessage");
 showPage("success");
 
 setTimeout(() => {
@@ -1623,12 +1797,26 @@ setTimeout(() => {
 }, 1500);
 
 console.log("✅ Order Completed:", orderId);
+isPlacingOrder = false;
+if (placeBtn) {
+  placeBtn.disabled = false;
+  placeBtn.textContent = originalText;
+  placeBtn.style.opacity = "1";
+}
 
 // SAVE ORDER HISTORY FOR MY ORDERS
 
     // ── 9. Success — clear cart & redirect ──
     cart = {};
     updateBadges();
+
+  // Reset Coupon
+discountAmount = 0;
+couponCode = "";
+
+localStorage.removeItem("couponCode");
+localStorage.removeItem("couponMessage");
+
     toast(`Order placed successfully! 🎉 ID: ${orderId.slice(-6).toUpperCase()}`);
 
     // Short delay so the toast is visible before the page transitions
@@ -1749,6 +1937,8 @@ ${order.cartItems.map(item=>`
 
 <div class="order-product">
 
+<div>
+
 🍗 ${item.productName}
 
 <span>
@@ -1757,25 +1947,20 @@ ${order.cartItems.map(item=>`
 
 </div>
 
+<button
+class="rate-btn"
+onclick="openReview('${item.productId}')">
+
+⭐ Rate
+
+</button>
+
+</div>
 
 `).join("")}
 
 
 </div>
-
-
-
-
-<button 
-class="rate-btn"
-
-onclick="openReview('${order.cartItems[0].productId}')">
-
-⭐ Rate Product
-
-</button>
-
-
 
 </div>
 
@@ -1908,9 +2093,19 @@ createdAt:new Date().toISOString()
 
 toast("Review submitted successfully ❤️");
 
+ratings={
+overall:0,
+freshness:0,
+packing:0
+};
+
+document
+.querySelectorAll(".stars span")
+.forEach(s=>s.classList.remove("active"));
 
 document.getElementById("review-text").value="";
 
+loadReviewSummary(reviewProductId);
 
 closeReview();
 
@@ -1924,9 +2119,42 @@ alert("Review save failed");
 
 }
 
+isPlacingOrder = false;
+}
+
+function setFreshness(value){
+
+ratings.freshness = value;
+
+document.querySelectorAll("#freshness-stars span")
+.forEach((s,i)=>{
+
+if(i < value){
+s.classList.add("active");
+}else{
+s.classList.remove("active");
+}
+
+});
 
 }
 
+function setPacking(value){
+
+ratings.packing = value;
+
+document.querySelectorAll("#packing-stars span")
+.forEach((s,i)=>{
+
+if(i < value){
+s.classList.add("active");
+}else{
+s.classList.remove("active");
+}
+
+});
+
+}
 
 async function loadReviewSummary(productId){
 
@@ -2020,7 +2248,6 @@ window.selectSlot         = selectSlot;
 window.selPay             = selPay;
 window.placeOrder         = placeOrder;
 window.toast              = toast;
-window.quickAdd = quickAdd;
 window.sortProducts = sortProducts;
 window.loadOptions = loadOptions;
 window.selectWeight = selectWeight;
@@ -2029,6 +2256,8 @@ window.selectSkin = selectSkin;
 window.openReview = openReview;
 window.closeReview = closeReview;
 window.setRating = setRating;
+window.setFreshness = setFreshness;
+window.setPacking = setPacking;
 window.submitReview = submitReview;
 /* ══════════════════════════════════════════════════════════
    § INIT — Boot the App
@@ -2036,5 +2265,5 @@ window.submitReview = submitReview;
 
 // Render the home page featured products on first load
 renderFeatured();
-
+updateBadges();
 
