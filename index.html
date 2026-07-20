@@ -439,12 +439,12 @@ Skin Type
         
         <div class="form-title" style="margin-top:20px;">Delivery Slot</div>
         <div class="slots-grid" id="slots-grid">
-          <button class="slot-btn selected" onclick="selectSlot(this,'10 AM - 12 PM')"><strong>6 PM – 9 PM</strong>Mon - Fri</button>
-         <!-- <button class="slot-btn" onclick="selectSlot(this,'12 PM - 2 PM')"><strong>12 PM – 2 PM</strong>Today</button>
-          <button class="slot-btn" onclick="selectSlot(this,'4 PM - 6 PM')"><strong>4 PM – 6 PM</strong>Today</button>
-          <button class="slot-btn" onclick="selectSlot(this,'7 PM - 9 PM')"><strong>7 PM – 9 PM</strong>Today</button> -->
-           <button class="slot-btn" onclick="selectSlot(this,'10 AM - 2 PM')"><strong>10 AM – 2 PM</strong>Sat - Sun</button>
-            <button class="slot-btn" onclick="selectSlot(this,'4 PM - 9 PM')"><strong>4 PM – 9 PM</strong>Sat - Sun</button>
+          <button class="slot-btn selected" onclick="selectSlot(this,'6 PM - 9 PM')"><strong>6 PM – 9 PM</strong>Mon - Fri</button>
+          <button class="slot-btn" onclick="selectSlot(this,'10 AM - 2 PM')"><strong>10 PM – 2 PM</strong>Sat</button> 
+          <button class="slot-btn" onclick="selectSlot(this,'7 AM - 9 AM')"><strong>7 AM – 9 AM</strong>Sunday</button>
+          <button class="slot-btn" onclick="selectSlot(this,'10 AM - 12 PM')"><strong>10 AM – 12 PM</strong>Sunday</button> 
+           <button class="slot-btn" onclick="selectSlot(this,'1 PM - 3 PM')"><strong>1 PM – 3 PM</strong>Sunday</button>
+            <button class="slot-btn" onclick="selectSlot(this,'5 PM - 7 PM')"><strong>5 PM – 7 PM</strong>Sunday</button>
         </div>
 
         <div class="checkout-card">
@@ -542,49 +542,41 @@ Overall Rating
 
 <div class="mini-rating">
 
-<div>
-🥩 Freshness
+  <div>
+    🥩 Freshness
+    <div class="small-stars" id="freshness-stars">
+      <span onclick="setFreshness(1)">★</span>
+      <span onclick="setFreshness(2)">★</span>
+      <span onclick="setFreshness(3)">★</span>
+      <span onclick="setFreshness(4)">★</span>
+      <span onclick="setFreshness(5)">★</span>
+    </div>
+  </div>
 
-<div class="small-stars">
-★★★★★
+  <div>
+    📦 Packing
+    <div class="small-stars" id="packing-stars">
+      <span onclick="setPacking(1)">★</span>
+      <span onclick="setPacking(2)">★</span>
+      <span onclick="setPacking(3)">★</span>
+      <span onclick="setPacking(4)">★</span>
+      <span onclick="setPacking(5)">★</span>
+    </div>
+  </div>
+
 </div>
 
-</div>
+<textarea id="review-text" placeholder="Write your review..."></textarea>
 
-
-<div>
-📦 Packing
-
-<div class="small-stars">
-★★★★★
-</div>
-
-</div>
-
-</div>
-
-<textarea id="review-text"
-placeholder="Write your review..."></textarea>
-
-
-<button onclick="submitReview()"
-class="submit-review">
-
-Submit Review ⭐
-
+<button onclick="submitReview()" class="submit-review">
+  Submit Review ⭐
 </button>
 
-
-<button onclick="closeReview()"
-class="close-review">
-
-Cancel
-
+<button onclick="closeReview()" class="close-review">
+  Cancel
 </button>
 
-
 </div>
-
 </div>
 
 <!-- ══════════ ORDER SUCCESS ══════════ -->
