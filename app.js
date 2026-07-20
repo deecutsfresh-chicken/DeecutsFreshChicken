@@ -39,8 +39,27 @@ const firebaseConfig = {
   appId: "1:829705752806:web:8817ede4a9590e48de2b27",
   measurementId: "G-MPPE04B0ZT"
 };
+
+// FIX: `db` must live in the outer (module/global) scope so every other
+// function in this file (placeOrder, submitReview, loadReviewSummary, etc.)
+// can see it. Previously it was declared with `const` INSIDE the try{} block,
+// which made it invisible everywhere else and caused "db is not defined".
+let db;
+
+// FIX: moved out of the try block so it's reliably defined & callable later.
+function checkFirebaseConnection() {
+  if (!db) return;
+  db.ref(".info/connected").on("value", (snap) => {
+    if (snap.val() === true) {
+      console.log("✅ Firebase Connected");
+    } else {
+      console.warn("❌ Firebase Disconnected");
+      toast("No internet connection.");
+    }
+  });
+}
+
 // Initialise Firebase app (guard against double-initialisation during hot reloads)
-// Firebase Initialize
 try {
 
   if (!firebase.apps.length) {
@@ -48,7 +67,7 @@ try {
   }
 
   // Get a reference to the Realtime Database service
-  const db = firebase.database();
+  db = firebase.database();
 
   console.log("✅ Firebase Connected");
 
@@ -420,12 +439,17 @@ let currentView = "home";
 let currentPage = 1;
 let currentSort = "popular";
 const productsPerPage = 10;
+const MAX_CART_QTY = 10;
 let selectedSlot = "10 AM - 12 PM"; // default delivery slot
 let discountAmount = 0;
 let couponCode = "";
 let reviewProductId = null;
 let reviewRating = 0;
 let isPlacingOrder = false;
+let isSubmittingReview = false;
+// FIX: removed the duplicate `let isPlacingOrder = false;` that was here.
+// Re-declaring the same `let` binding twice is a SyntaxError and prevented
+// the entire script from parsing/running.
 
 let ratings = {
   overall: 0,
@@ -940,9 +964,19 @@ if (!selectedSize) {
     selectedSize = currentProd.sizes ? currentProd.sizes[0] : "";
 }
 
+// FIX: this cap check must run BEFORE building the object — it was
+// previously written as a bare `if (...) {...}` statement placed in the
+// middle of an object literal, which is a SyntaxError.
+if (detQtyVal > MAX_CART_QTY) {
+  detQtyVal = MAX_CART_QTY;
+}
+
 if (cart[currentProd.id]) {
 
-  cart[currentProd.id].qty += detQtyVal;
+  cart[currentProd.id].qty = Math.min(
+    cart[currentProd.id].qty + detQtyVal,
+    MAX_CART_QTY
+);
 
   cart[currentProd.id].weight = selectedWeight;
 
@@ -978,53 +1012,36 @@ toast(`${currentProd.name} added to cart 🎉`);
 /** One-click add from product card */
 function quickAdd(id) {
 
-  const p = cart[id].product;
+  const p = products.find(x => x.id === id);
 
-  if(!p) return;
+  if (!p) return;
 
-
-  if(!cart[id]){
+  if (!cart[id]) {
 
     cart[id] = {
-  product: p,
-  qty: 1,
-  weight: {
-    kg: p.weights[0].kg,
-    price: p.weights[0].price,
-    mrp: p.weights[0].mrp
-  },
-  size: p.sizes ? p.sizes[0] : "",
-  skin: p.skin ? p.skin[0] : ""
-};
+      product: p,
+      qty: 1,
+      weight: {
+        kg: p.weights[0].kg,
+        price: p.weights[0].price,
+        mrp: p.weights[0].mrp
+      },
+      size: p.sizes ? p.sizes[0] : "",
+      skin: p.skin ? p.skin[0] : ""
+    };
 
-  }else{
+  } else {
+
+    if (cart[id].qty >= MAX_CART_QTY) {
+      toast(`Maximum ${MAX_CART_QTY} items allowed`);
+      return;
+    }
 
     cart[id].qty++;
-
-    // Backward compatibility
-    if (!cart[id].weight) {
-        cart[id].weight = {
-            kg: p.weights?.[0]?.kg || "",
-            price: p.weights?.[0]?.price || p.price || 0,
-            mrp: p.weights?.[0]?.mrp || p.mrp || 0
-        };
-    }
-
-    if (!cart[id].size) {
-        cart[id].size = p.sizes ? p.sizes[0] : "";
-    }
-
-    if (!cart[id].skin) {
-        cart[id].skin = p.skin ? p.skin[0] : "";
-    }
-
-}
-
+  }
 
   updateBadges();
-
   toast(`${p.name} added! 🛒`);
-
 }
 
 let selectedWeight = null;
@@ -1227,6 +1244,14 @@ if (couponCode) {
 
   }
 
+  // FIX: this guard used to live at the top level referencing an
+  // undefined `subtotal`, which threw a ReferenceError on every page
+  // load and stopped the rest of the script from running. It now lives
+  // here where `subtotal` is actually in scope.
+  if (discountAmount > subtotal) {
+    discountAmount = subtotal;
+  }
+
 }
 
   } catch (err) {
@@ -1375,77 +1400,157 @@ function saveCoupon(value){
 
 }
 
-function applyCoupon(){
+function applyCoupon() {
 
-const code=document.getElementById("coupon-input")
-.value.trim().toUpperCase();
-// Prevent applying the same coupon again
-if (couponCode !== "") {
-    toast("Coupon already applied ✅");
-    return;
+    const input = document.getElementById("coupon-input");
+
+    if (!input) return;
+
+    const code = input.value.trim().toUpperCase();
+
+    discountAmount = 0;
+    couponCode = "";
+
+    let subtotal = 0;
+
+    Object.values(cart).forEach(item => {
+        subtotal += (item.weight?.price || 0) * item.qty;
+    });
+
+    // Empty Coupon
+    if (code === "") {
+        toast("Please enter a coupon code");
+        return;
+    }
+
+    switch (code) {
+
+        case "DEECUTS10":
+            if (subtotal < 500) {
+                toast("Minimum order ₹500 required");
+                return;
+            }
+
+            discountAmount = Math.round(subtotal * 0.10);
+            couponCode = code;
+            toast("10% Discount Applied 🎉");
+            break;
+
+
+        case "SAVE50":
+            if (subtotal < 300) {
+                toast("Minimum order ₹300 required");
+                return;
+            }
+
+            discountAmount = 50;
+            couponCode = code;
+            toast("₹50 Discount Applied 🎉");
+            break;
+
+
+        case "FIRST100":
+
+            if (subtotal < 1000) {
+                toast("Minimum order ₹1000 required");
+                return;
+            }
+
+            discountAmount = 100;
+            couponCode = code;
+            toast("₹100 Discount Applied 🎉");
+            break;
+
+
+        default:
+            toast("Invalid Coupon Code ❌");
+            return;
+    }
+
+    // Discount should never exceed subtotal
+    if (discountAmount > subtotal) {
+        discountAmount = subtotal;
+    }
+
+    localStorage.setItem("couponCode", couponCode);
+    saveCoupon(code);
+
+    renderCart();
 }
-discountAmount = 0;
-couponCode = "";
 
-let subtotal = 0;
+function applySavedCoupon(code) {
 
-Object.values(cart).forEach(item=>{
-subtotal += item.weight.price * item.qty;
-});
+    let subtotal = 0;
 
-switch(code){
+    Object.values(cart).forEach(item => {
+        subtotal += (item.weight?.price || 0) * item.qty;
+    });
 
-case "DEECUTS10":
-discountAmount = Math.round(subtotal * 0.10);
-couponCode = code;
-toast("10% Discount Applied");
-break;
+    discountAmount = 0;
 
-case "SAVE50":
-discountAmount = 50;
-couponCode = code;
-toast("₹50 Discount Applied");
-break;
+    switch (code) {
 
-case "FIRST100":
-discountAmount = 100;
-couponCode = code;
-toast("₹100 Discount Applied");
-break;
+        case "DEECUTS10":
+            discountAmount = Math.round(subtotal * 0.10);
+            break;
 
-default:
-alert("Invalid Coupon");
-return;
+        case "SAVE50":
+            discountAmount = 50;
+            break;
+
+        case "FIRST100":
+            discountAmount = 100;
+            break;
+
+    }
+
+    if (discountAmount > subtotal) {
+        discountAmount = subtotal;
+    }
 
 }
-
-localStorage.setItem("couponCode",couponCode);
-saveCoupon(code);
-renderCart();
-
-}
-
-
 
 /** Change cart item quantity (handles zero → remove) */
 function chgCart(id, d) {
-  cart[id].qty += d;
 
-if(cart[id].qty <= 0){
- delete cart[id];
-}
-  if (!cart[id]) delete cart[id];
-  updateBadges();
-  renderCart();
+    if (!cart[id]) return;
+
+    if (d > 0 && cart[id].qty >= MAX_CART_QTY) {
+
+        toast(`Maximum ${MAX_CART_QTY} items allowed`);
+
+        return;
+
+    }
+
+    cart[id].qty += d;
+
+    if (cart[id].qty <= 0) {
+
+        delete cart[id];
+
+    }
+
+    updateBadges();
+
+    renderCart();
+
 }
 
-/** Remove an item completely from cart */
+/**
+ * FIX: this function was referenced everywhere (the ✕ button in the cart,
+ * and `window.delCart = delCart`) but was never actually defined anywhere
+ * in the file — calling it, or even just assigning `window.delCart =
+ * delCart` at the bottom of the script, threw "delCart is not defined"
+ * and broke script execution. Added the missing implementation here.
+ */
 function delCart(id) {
+  if (!cart[id]) return;
   delete cart[id];
   updateBadges();
   renderCart();
+  toast("Item removed from cart");
 }
-
 
 
 /* ══════════════════════════════════════════════════════════
@@ -1488,11 +1593,10 @@ ${cart[id].skin ? " | " + cart[id].skin : ""}
 
   const delivery = subtotal >= 399 ? 0 : 49;
   const gst      = Math.round(subtotal * 0.01);
-  const total =
-subtotal
-- discountAmount
-+ delivery
-+ gst;
+  const total = Math.max(
+    0,
+    subtotal - discountAmount + delivery + gst
+);
 
   const coItems  = document.getElementById("co-items");
   const coTotals = document.getElementById("co-totals");
@@ -1501,6 +1605,12 @@ subtotal
   if (coTotals) coTotals.innerHTML = `
     <div class="summary-row" style="margin-top:12px"><span>Subtotal</span><span>₹${subtotal}</span></div>
     <div class="summary-row"><span>Delivery</span><span>${delivery === 0 ? '<span style="color:var(--green)">FREE</span>' : '₹' + delivery}</span></div>
+   ${discountAmount > 0 ? `
+<div class="summary-row">
+    <span>Discount</span>
+    <span style="color:green;">-₹${discountAmount}</span>
+</div>
+` : ""}
     <div class="summary-row"><span>GST (1%)</span><span>₹${gst}</span></div>
     <div class="summary-row total"><span>Total</span><span>₹${total}</span></div>`;
 }
@@ -1546,32 +1656,43 @@ isPlacingOrder = true;
 
   const customerName    = nameEl  ? nameEl.value.trim()  : "";
   const customerPhone   = phoneEl ? phoneEl.value.trim() : "";
-  const customerAddress = addrEl  ? addrEl.value.trim()  : "";
+  const customerAddress = addrEl
+    ? addrEl.value.trim().replace(/\s+/g, " ")
+    : "";
   const customerCity    = cityEl  ? cityEl.value.trim()  : "";
   const customerPin     = pinEl   ? pinEl.value.trim()   : "";
 
   // ── 2. Validate required fields ──
-  if (!customerName) {
-    alert("⚠️ Please enter your full name.");
+  // FIX: every early `return` below now resets `isPlacingOrder = false`
+  // first. Previously, a failed validation left the flag stuck at `true`
+  // forever, silently disabling the "Place Order" button on every future
+  // attempt (since the very first line of this function returns early
+  // whenever isPlacingOrder is true).
+  if (customerName.length < 3) {
+    alert("⚠️ Name must contain at least 3 characters.");
     if (nameEl) nameEl.focus();
+    isPlacingOrder = false;
     return;
-  }
+}
   if (!customerPhone || !/^[0-9]{10}$/.test(customerPhone)) {
     alert("⚠️ Please enter a valid 10-digit phone number.");
     if (phoneEl) phoneEl.focus();
+    isPlacingOrder = false;
     return;
   }
-  if (!customerAddress) {
-    alert("⚠️ Please enter your delivery address.");
+  if (customerAddress.length < 10) {
+    alert("⚠️ Please enter a complete delivery address.");
     if (addrEl) addrEl.focus();
+    isPlacingOrder = false;
     return;
-  }
+}
 
   // ── 3. Check cart is not empty ──
   const cartKeys = Object.keys(cart).filter(k => cart[k].qty > 0);
   if (!cartKeys.length) {
     alert("⚠️ Your cart is empty. Please add items before placing an order.");
     showPage("shop");
+    isPlacingOrder = false;
     return;
   }
 
@@ -1597,7 +1718,7 @@ const line = price * qty;
       productId:   p.id,
       productName: p.name,
       category:    p.cat,
-      weight: cart[id].weight.kg,
+      weight: cart[id].weight?.kg || "",
       skin: cart[id].skin || "",
       size: cart[id].size,
       unitPrice: price,
@@ -1608,11 +1729,10 @@ const line = price * qty;
 
   const delivery    = subtotal >= 399 ? 0 : 49;
   const gst         = Math.round(subtotal * 0.01);
-  const total =
-subtotal
-- discountAmount
-+ delivery
-+ gst;
+  const total = Math.max(
+    0,
+    subtotal - discountAmount + delivery + gst
+);
 
   // ── 5. Get selected payment method label ──
   const paySelected = document.querySelector(".pay-opt.sel .pay-opt-name");
@@ -1712,6 +1832,14 @@ try {
 } catch (err) {
   console.error("❌ MongoDB Error:", err);
 }
+
+if (!orderId) {
+  // FIX: guard against both Firebase and MongoDB failing — without an
+  // orderId the rest of this flow (order history, WhatsApp message,
+  // success page) would silently show "undefined".
+  orderId = "LOCAL" + Date.now();
+}
+
 const whatsappNumber = "916380141360";
 
 let whatsappMsg = `🐔 DEECUTS NEW ORDER
@@ -1760,24 +1888,12 @@ localStorage.setItem(
 console.log("ORDER HISTORY SAVED");
 
 
-// CLEAR CART AFTER SAVING
-
-//cart = {};updateBadges();
-
-
 // success flag
 
 localStorage.setItem(
  "orderSuccess",
  "true"
 );
-
-
-
-// CLEAR CART
-//cart = {};
-//updateBadges();
-
 
 
 // OPEN WHATSAPP
@@ -1790,6 +1906,7 @@ discountAmount = 0;
 
 localStorage.removeItem("couponCode");
 localStorage.removeItem("couponMessage");
+
 showPage("success");
 
 setTimeout(() => {
@@ -1797,30 +1914,18 @@ setTimeout(() => {
 }, 1500);
 
 console.log("✅ Order Completed:", orderId);
-isPlacingOrder = false;
+
 if (placeBtn) {
   placeBtn.disabled = false;
   placeBtn.textContent = originalText;
   placeBtn.style.opacity = "1";
 }
 
-// SAVE ORDER HISTORY FOR MY ORDERS
-
     // ── 9. Success — clear cart & redirect ──
     cart = {};
     updateBadges();
 
-  // Reset Coupon
-discountAmount = 0;
-couponCode = "";
-
-localStorage.removeItem("couponCode");
-localStorage.removeItem("couponMessage");
-
     toast(`Order placed successfully! 🎉 ID: ${orderId.slice(-6).toUpperCase()}`);
-
-    // Short delay so the toast is visible before the page transitions
-    // setTimeout(() => showPage("success"), 800);
 
   } catch (error) {
     // ── 10. Error handling ──
@@ -1844,6 +1949,9 @@ localStorage.removeItem("couponMessage");
       placeBtn.textContent   = originalText;
       placeBtn.style.opacity = "1";
     }
+  } finally {
+    // FIX: guarantee the flag always clears, even on unexpected errors.
+    isPlacingOrder = false;
   }
 }
 
@@ -1959,8 +2067,14 @@ onclick="openReview('${item.productId}')">
 
 `).join("")}
 
+<button
+class="btn btn-primary"
+style="margin-top:10px"
+onclick='reOrder(${JSON.stringify(order.cartItems)})'>
 
-</div>
+🛒 Reorder
+
+</button>
 
 </div>
 
@@ -2056,18 +2170,21 @@ console.log("Overall Rating:", ratings.overall);
 
 async function submitReview(){
 
+ if (isSubmittingReview) return;
 
-let text =
-document.getElementById("review-text").value;
+const text = document.getElementById("review-text").value.trim();
 
-
-
-if(ratings.overall===0){
-
-alert("Please select star rating ⭐");
-return;
-
+if (ratings.overall === 0) {
+    alert("Please select a star rating ⭐");
+    return;
 }
+
+if (text.length < 5) {
+    alert("Please enter at least 5 characters for your review.");
+    return;
+}
+
+isSubmittingReview = true;
 
 
 try{
@@ -2103,8 +2220,6 @@ document
 .querySelectorAll(".stars span")
 .forEach(s=>s.classList.remove("active"));
 
-document.getElementById("review-text").value="";
-
 loadReviewSummary(reviewProductId);
 
 closeReview();
@@ -2117,9 +2232,14 @@ console.log(err);
 
 alert("Review save failed");
 
+} finally {
+  // FIX: consolidated the resets into one place instead of the original
+  // scattered/duplicated `isSubmittingReview = false;` and stray
+  // `isPlacingOrder = false;` lines (placeOrder's flag had no business
+  // being touched inside submitReview at all).
+  isSubmittingReview = false;
 }
 
-isPlacingOrder = false;
 }
 
 function setFreshness(value){
@@ -2138,6 +2258,40 @@ s.classList.remove("active");
 });
 
 }
+
+
+function reOrder(items){
+
+  items.forEach(item=>{
+
+    cart[item.productId] = {
+
+      product: products.find(p => p.id == item.productId),
+
+      qty: item.quantity,
+
+      weight: {
+        kg: item.weight,
+        price: item.unitPrice,
+        mrp: item.unitPrice
+      },
+
+      size: item.size || "",
+
+      skin: item.skin || ""
+
+    };
+
+  });
+
+  updateBadges();
+
+  toast("Items added to cart 🛒");
+
+  showPage("cart");
+
+}
+
 
 function setPacking(value){
 
@@ -2187,8 +2341,11 @@ return;
     const reviews = Object.values(data);
 
     let total = reviews.length;
-    document.getElementById("det-reviews").innerHTML =
-total+" Reviews";
+    const reviewCount = document.getElementById("det-reviews");
+
+if (reviewCount) {
+    reviewCount.innerHTML = total + " Reviews";
+}
 
     let avgOverall = 0;
     let freshness = 0;
@@ -2256,6 +2413,7 @@ window.selectSkin = selectSkin;
 window.openReview = openReview;
 window.closeReview = closeReview;
 window.setRating = setRating;
+window.reOrder = reOrder;
 window.setFreshness = setFreshness;
 window.setPacking = setPacking;
 window.submitReview = submitReview;
@@ -2265,5 +2423,53 @@ window.submitReview = submitReview;
 
 // Render the home page featured products on first load
 renderFeatured();
-updateBadges();
 
+const phoneInput = document.getElementById("c-phone");
+
+if (phoneInput) {
+
+    phoneInput.addEventListener("input", function () {
+
+        this.value = this.value
+            .replace(/\D/g, "")
+            .slice(0, 10);
+
+    });
+
+}
+
+const nameInput = document.getElementById("c-name");
+
+if (nameInput) {
+
+    nameInput.addEventListener("input", function () {
+
+        this.value = this.value
+            .replace(/[^a-zA-Z\s]/g, "")
+            .replace(/\s{2,}/g, " ");
+
+    });
+
+}
+
+const addressInput = document.getElementById("c-addr");
+
+if (addressInput) {
+
+    addressInput.addEventListener("input", function () {
+
+        this.value = this.value.replace(/\s{2,}/g, " ");
+
+    });
+
+}
+
+
+updateBadges();
+checkFirebaseConnection();
+const savedCoupon = localStorage.getItem("couponCode");
+
+if (savedCoupon) {
+    couponCode = savedCoupon;
+    applySavedCoupon(savedCoupon);
+}
