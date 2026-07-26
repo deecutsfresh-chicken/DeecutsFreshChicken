@@ -21,14 +21,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+<link rel="canonical"
+href="https://yourdomain.com/">
 <!-- Open Graph (WhatsApp / Facebook Share) -->
 <meta property="og:title" content="DEECUTS | Fresh Chicken Delivery">
 <meta property="og:description" content="Farm fresh hygienic chicken delivered to your doorstep. Order curry cut, boneless, leg piece and more.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://sivabalankannan003-ks.github.io/Deeweb/">
 <meta property="og:image" content="https://sivabalankannan003-ks.github.io/Deeweb/logo.png.jpeg">
+<meta name="theme-color"
+content="#6C2BD9">
 
+<meta
+name="apple-mobile-web-app-capable"
+content="yes">
+
+<meta
+name="apple-mobile-web-app-status-bar-style"
+content="black-translucent">
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="DEECUTS Fresh Chicken Delivery">
@@ -59,15 +69,15 @@
 <!-- ═══ TOP NAV ═══ -->
 <nav class="top-nav" id="top-nav">
 
-  <nav class="navbar">
+   <div class="navbar">
 
 <div class="logos">
-<img src="logo.jpg" alt="Deecuts Logo">
+<img loading="lazy" src="logo.jpg" alt="Deecuts Logo">
 </div>
-</nav>
+</div>
 
 
-<div class="logo-box" onclick="showPage('home')">
+<div class="logo-box" onclick="navigate('home')">
 
 <div class="logo-text">
 DEECUTS
@@ -78,29 +88,27 @@ FARM FRESH POULTRY
 </div>
 
 </div>
-
-</div>
   <ul class="nav-links">
-    <li><a id="nl-home" class="active" onclick="showPage('home')">Home</a></li>
-    <li><a id="nl-shop" onclick="showPage('shop')">Shop</a></li>
+    <li><a id="nl-home" class="active" onclick="navigate('home')">Home</a></li>
+    <li><a id="nl-shop" onclick="navigate('shop')">Shop</a></li>
     <li><a href="about.html">About Us</a></li>
     <li><a href="why.html">Why Deecuts</a></li>
     <li><a href="contact.html">Contact</a></li>
   </ul>
   <div class="nav-right">
-    <button class="icon-btn" onclick="showPage('shop')">🔍</button>
-    <button class="icon-btn" onclick="showPage('cart')" style="position:relative">🛒<span class="cart-dot" id="cart-badge">0</span></button>
-    <button class="icon-btn"  onclick="showPage('account')"> <span class="icon">👤</span></button>
+    <button class="icon-btn" onclick="navigate('shop')">🔍</button>
+    <button class="icon-btn" onclick="navigate('cart')" style="position:relative">🛒<span class="cart-dot" id="cart-badge">0</span></button>
+    <button class="icon-btn"  onclick="navigate('account')"> <span class="icon">👤</span></button>
   </div>
 </nav>
 
 <!-- ═══ MOBILE BOTTOM NAV ═══ -->
 <div class="mobile-nav">
   <div class="mobile-nav-inner">
-    <button class="mob-nav-item active" id="mn-home" onclick="showPage('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
-    <button class="mob-nav-item" id="mn-shop" onclick="showPage('shop')"><span class="icon">🛍️</span><span class="label">Shop</span></button>
-    <button class="mob-nav-item" id="mn-cart" onclick="showPage('cart')"><span class="mob-cart-wrap"><span class="icon">🛒</span><span class="mob-cart-badge" id="mob-cart-badge">0</span></span><span class="label">Cart</span></button>
-    <button class="mob-nav-item" id="mn-acc" onclick="showPage('account')"><span class="icon">👤</span><span class="label">Account</span></button>
+    <button class="mob-nav-item active" id="mn-home" onclick="navigate('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+    <button class="mob-nav-item" id="mn-shop" onclick="navigate('shop')"><span class="icon">🛍️</span><span class="label">Shop</span></button>
+    <button class="mob-nav-item" id="mn-cart" onclick="navigate('cart')"><span class="mob-cart-wrap"><span class="icon">🛒</span><span class="mob-cart-badge" id="mob-cart-badge">0</span></span><span class="label">Cart</span></button>
+    <button class="mob-nav-item" id="mn-acc" onclick="navigate('account')"><span class="icon">👤</span><span class="label">Account</span></button>
   </div>
 </div>
 
@@ -115,7 +123,7 @@ FARM FRESH POULTRY
       <p>We deliver 100% farm fresh chicken with no hormones, perfectly cut, hygienically cleaned and delivered fresh to your home.</p>
       <div class="hero-btns">
         <button class="btn btn-primary" 
-onclick="showPage('shop')">Shop Now →</button>
+onclick="navigate('shop')">Shop Now →</button>
        <!--<button class="btn btn-outline">Know More</button>-->
       </div>
     </div>
@@ -177,7 +185,7 @@ onclick="showPage('shop')">Shop Now →</button>
     </div>
     <div class="product-grid" id="featured-grid"></div>
     <div style="text-align:center;margin-top:22px">
-      <button class="btn btn-primary" onclick="showPage('shop')">View All Products →</button>
+      <button class="btn btn-primary" onclick="navigate('shop')">View All Products →</button>
     </div>
   </div>
 
@@ -212,7 +220,7 @@ onclick="showPage('shop')">Shop Now →</button>
       <div class="footer-brand">
         <a href="#" class="nav-logo" style="margin-bottom:0.8rem;display:inline-flex">
           <!-- <div class="nav-logo-icon">🍗</div> -->
-          <div class="nav-logo-text"> FreshChicken<span>Sales &amp; Supply Services</span></div>
+          <div class="nav-logo-text"> Fresh Chicken<span>Sales &amp; Supply Services</span></div>
         </a>
         <p>Your trusted source for farm-fresh, hygienically processed chicken. Serving homes, hotels, and businesses daily.</p>
         <div class="social-icons" style="margin-top:1.2rem">
@@ -246,15 +254,15 @@ onclick="showPage('shop')">Shop Now →</button>
       <div class="footer-col">
         <h4>Contact Info</h4>
         <ul>
-          <li><a href="tel:+916380141360"><i class="fas fa-phone" style="margin-right:0.5rem;color:var(--red-bright)"></i>+91 63801 41360</a></li>
+          <li><a href="tel:+916380141360"><i class="fas fa-phone" style="margin-right:0.5rem;color:var(--red-bright)"></i>tel:+916380141360</a></li>
           <li><a href="https://wa.me/916380141360"><i class="fab fa-whatsapp" style="margin-right:0.5rem;color:#25d366"></i>WhatsApp Us</a></li>
           <li><a href="mailto:orders.deecuts@gmail.com"><i class="fas fa-envelope" style="margin-right:0.5rem;color:var(--red-bright)"></i>orders.deecuts@gmail.com</a></li>
-          <li><a href="#contact"><i class="fas fa-location-dot" style="margin-right:0.5rem;color:var(--red-bright)"></i>Dindigul, TN</a></li>
+          <li><a href="contact.html"><i class="fas fa-location-dot" style="margin-right:0.5rem;color:var(--red-bright)"></i>Dindigul, TN</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2026 Deecuts Fresh Chicken Sales &amp; Supply Services. All rights reserved.</p>
+      <p>&copy; 2026 DEECUTS Fresh Chicken Sales &amp; Supply Services. All rights reserved.</p>
       <p>Built with ❤️ for fresh &amp; quality chicken supply.</p>
     </div>
   </div>
@@ -279,7 +287,7 @@ style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255
 </select>
     </div>
   </div>
-    <button class="back-btn" onclick="showPage('home')">
+    <button class="back-btn" onclick="navigate('home')">
 ← Back to Home
 </button>
   <button class="filter-fab" onclick="toggleFilterDrawer()" id="filter-fab">⚙️</button>
@@ -332,7 +340,7 @@ style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255
   <div class="page-header" style="padding:16px 5%">
     <div class="breadcrumb" id="det-crumb">Home · Shop · <span>Product</span></div>
   </div>
-  <button class="back-btn" onclick="showPage('shop')">
+  <button class="back-btn" onclick="navigate('shop')">
 ← Back to Shop
 </button>
   <div class="detail-wrap">
@@ -390,7 +398,7 @@ Skin Type
         </div>
         <div class="detail-actions">
           <button class="btn-add" onclick="addCurrent()">🛒 Add to Cart</button>
-          <button class="btn-buy" onclick="addCurrent();showPage('cart')">Buy Now</button>
+          <button class="btn-buy" onclick="addCurrent();navigate('cart')">Buy Now</button>
         </div>
         
         <div class="trust-mini">
@@ -411,7 +419,7 @@ Skin Type
     <h1>Your Cart</h1>
   </div>
   <div class="cart-wrap" id="cart-content"></div>
-  <button class="back-btn continue-btn" onclick="showPage('shop')">
+  <button class="back-btn continue-btn" onclick="navigate('shop')">
 ← Continue Shopping
 </button>
 </div>
@@ -440,7 +448,7 @@ Skin Type
         <div class="form-title" style="margin-top:20px;">Delivery Slot</div>
         <div class="slots-grid" id="slots-grid">
           <button class="slot-btn selected" onclick="selectSlot(this,'6 PM - 9 PM')"><strong>6 PM – 9 PM</strong>Mon - Fri</button>
-          <button class="slot-btn" onclick="selectSlot(this,'10 AM - 2 PM')"><strong>10 PM – 2 PM</strong>Sat</button> 
+          <button class="slot-btn" onclick="selectSlot(this,'10 AM - 2 PM')"><strong>10 AM – 2 PM</strong>Sat</button> 
           <button class="slot-btn" onclick="selectSlot(this,'7 AM - 9 AM')"><strong>7 AM – 9 AM</strong>Sunday</button>
           <button class="slot-btn" onclick="selectSlot(this,'10 AM - 12 PM')"><strong>10 AM – 12 PM</strong>Sunday</button> 
            <button class="slot-btn" onclick="selectSlot(this,'1 PM - 3 PM')"><strong>1 PM – 3 PM</strong>Sunday</button>
@@ -462,7 +470,7 @@ Skin Type
           <div id="co-items"></div>
           <div id="co-totals"></div>
           <div class="secure-badge">🔒 100% Secure. Your details are safe with us.</div>
-          <button class="back-btn" onclick="showPage('shop')">
+          <button class="back-btn" onclick="navigate('shop')">
 ← Add More Products
 </button>
           <button class="place-order-btn" onclick="placeOrder()">Place Order →</button>
@@ -585,7 +593,7 @@ Overall Rating
 
   <h1>DEECUTS 🐔</h1>
 
-  <button onclick="showPage('success')">
+  <button onclick="navigate('success')">
     Test Order
   </button>
 
@@ -597,7 +605,7 @@ Overall Rating
 
   <h1>Cart Page</h1>
 
-  <button onclick="showPage('home')">
+  <button onclick="navigate('home')">
     Back Home
   </button>
 
@@ -651,7 +659,7 @@ Overall Rating
 
 
     <button class="success-btn"
-    onclick="showPage('home')">
+    onclick="navigate('home')">
 
       Back To Home →
 
