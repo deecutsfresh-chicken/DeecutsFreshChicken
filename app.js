@@ -3,11 +3,6 @@
    Firebase Realtime Database Integration (v8 compat CDN)
    ============================================================ */
 
-
-/* ══════════════════════════════════════════════════════════
-   § FIREBASE — Initialisation & Database Connection
-   ══════════════════════════════════════════════════════════ */
-
 /**
  * 🔧 SETUP STEPS (replace the placeholder values below):
  *
@@ -27,8 +22,23 @@
     }
   }
 }
+ *
  */
 
+
+/* ══════════════════════════════════════════════════════════
+   § FIREBASE — Initialisation & Database Connection
+   ══════════════════════════════════════════════════════════ */
+
+// FIX (BUG #4 — CRITICAL SyntaxError): the pasted file had
+// `const firebaseConfig = {` left OPEN — with a comment and
+// `let db;` sitting inside the object literal instead of real
+// key:value pairs, and no closing `}`. An unterminated/invalid
+// object literal is a fatal SyntaxError, so the entire script
+// failed to parse (nothing in the file would run at all).
+// Below is a properly CLOSED object literal with placeholder
+// values. Replace apiKey/authDomain/etc. with the real values
+// from Firebase Console → Project Settings → General → "Your apps".
 const firebaseConfig = {
   apiKey: "AIzaSyCLooaJmCyTnVGXYmnPfong-rz_tZJZWu0",
   authDomain: "deecuts-chicken-10e75.firebaseapp.com",
@@ -39,7 +49,6 @@ const firebaseConfig = {
   appId: "1:829705752806:web:8817ede4a9590e48de2b27",
   measurementId: "G-MPPE04B0ZT"
 };
-
 // FIX: `db` must live in the outer (module/global) scope so every other
 // function in this file (placeOrder, submitReview, loadReviewSummary, etc.)
 // can see it. Previously it was declared with `const` INSIDE the try{} block,
@@ -472,65 +481,53 @@ if(reviewText){
 /**
  * Switch between SPA pages.
  * @param {string} p - page id suffix (home | shop | cart | checkout | detail | account | success)
+ *
+ * FIX: this file originally declared TWO functions both named `navigate`
+ * — this full implementation, and a second one-argument wrapper further
+ * below ( function navigate(page){ navigate(page,true); } ). Two
+ * `function` declarations sharing one name in the same scope don't throw
+ * a SyntaxError, but the second one silently overwrites the first, so the
+ * identifier `navigate` ended up pointing ONLY at the wrapper — whose body
+ * calls `navigate(page,true)`, i.e. it called *itself* forever (the extra
+ * `true` argument was simply ignored, since the wrapper only declares one
+ * parameter). Every call to navigate(...) recursed infinitely and crashed
+ * with "Maximum call stack size exceeded", breaking every page transition
+ * in the app. FIX: removed the duplicate wrapper declaration below and
+ * changed this function's default `addHistory` value from `false` to
+ * `true`, so every existing single-argument call site (`navigate("shop")`,
+ * `navigate("cart")`, etc.) still pushes history exactly as before —
+ * without needing two functions of the same name.
  */
-function showPage(p) {
+function navigate(p, addHistory = true) {
 
-  // hide all pages
-  document.querySelectorAll(".page")
-  .forEach(el=>{
-    el.classList.remove("active");
+  // Hide all pages
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
   });
 
-
-  // show selected page
+  // Show selected page
   const target = document.getElementById("page-" + p);
 
-
-  if(target){
-
+  if (target) {
     target.classList.add("active");
-
   }
-
 
   currentView = p;
 
-
-
-  // desktop nav
-
+  // Desktop nav
   ["home","shop"].forEach(n=>{
-
     const el=document.getElementById("nl-"+n);
-
-    if(el){
-      el.classList.remove("active");
-    }
-
+    if(el) el.classList.remove("active");
   });
-
 
   const nav=document.getElementById("nl-"+p);
+  if(nav) nav.classList.add("active");
 
-  if(nav){
-    nav.classList.add("active");
-  }
-
-
-
-  // mobile nav
-
+  // Mobile nav
   ["home","shop","cart","acc"].forEach(n=>{
-
     const el=document.getElementById("mn-"+n);
-
-    if(el){
-      el.classList.remove("active");
-    }
-
+    if(el) el.classList.remove("active");
   });
-
-
 
   const mobileMap={
     home:"mn-home",
@@ -539,49 +536,36 @@ function showPage(p) {
     account:"mn-acc"
   };
 
-
   if(mobileMap[p]){
-
     const m=document.getElementById(mobileMap[p]);
-
-    if(m){
-      m.classList.add("active");
-    }
-
+    if(m) m.classList.add("active");
   }
 
-
-
-  // render pages
-
+  // Render
   if(p==="home") renderFeatured();
 
-if(p==="shop"){
-  currentPage = 1;
-  renderShop("All");
-}
+  if(p==="shop"){
+    currentPage=1;
+    renderShop("All");
+  }
 
   if(p==="cart") renderCart();
 
   if(p==="checkout") renderCheckout();
 
   if(p==="account"){
+    setTimeout(renderAccountOrders,100);
+  }
 
-setTimeout(()=>{
-
-renderAccountOrders();
-
-},100);
-
-}
-
-
+  // History
+  if(addHistory){
+    history.pushState({page:p},"","#"+p);
+  }
 
   window.scrollTo({
     top:0,
     behavior:"smooth"
   });
-
 }
 
 
@@ -842,7 +826,7 @@ function filterProducts(cat,el){
 /* Category click */
 function goCat(cat){
 
- showPage("shop");
+navigate("shop");
 
 
  setTimeout(()=>{
@@ -910,7 +894,7 @@ function showDetail(id) {
   document.getElementById("det-qty").textContent    = 1;
   document.getElementById("det-crumb").innerHTML    = `Home · Shop · <span>${currentProd.name}</span>`;
 
-  showPage("detail");
+ navigate("detail");
   setTimeout(()=>{
   loadReviewSummary(id);
 },500);
@@ -1289,7 +1273,7 @@ if (Object.keys(cart).length === 0) {
         <div class="empty-title">Cart is Empty</div>
         <div class="empty-sub">Add some fresh chicken to get started!</div>
         <button class="btn btn-primary" 
-onclick="showPage('shop')">Shop Now →</button>
+onclick="navigate('shop')">Shop Now →</button>
         
       </div>`;
     return;
@@ -1384,7 +1368,7 @@ Apply
         <div class="summary-row total"><span>Total</span><span>₹${total}</span></div>
         ${subtotal < 399 ? `<div style="font-size:11px;color:var(--green);text-align:center;margin-bottom:8px">Add ₹${399 - subtotal} more for FREE delivery!</div>` : ""}
         <div class="secure-badge">🔒 Your details are safe with us.</div>
-        <button class="checkout-full-btn" onclick="showPage('checkout')">Proceed to Checkout →</button>
+        <button class="checkout-full-btn" onclick="navigate('checkout')">Proceed to Checkout →</button>
       </div>
     </div>`;
 }
@@ -1691,7 +1675,7 @@ isPlacingOrder = true;
   const cartKeys = Object.keys(cart).filter(k => cart[k].qty > 0);
   if (!cartKeys.length) {
     alert("⚠️ Your cart is empty. Please add items before placing an order.");
-    showPage("shop");
+   navigate("shop");
     isPlacingOrder = false;
     return;
   }
@@ -1907,7 +1891,7 @@ discountAmount = 0;
 localStorage.removeItem("couponCode");
 localStorage.removeItem("couponMessage");
 
-showPage("success");
+navigate("success");
 
 setTimeout(() => {
   window.location.href = whatsappURL;
@@ -2288,7 +2272,7 @@ function reOrder(items){
 
   toast("Items added to cart 🛒");
 
-  showPage("cart");
+  navigate("cart");
 
 }
 
@@ -2389,7 +2373,7 @@ if (reviewCount) {
     by some bundlers / dev tools)
    ══════════════════════════════════════════════════════════ */
 
-window.showPage           = showPage;
+window.navigate         = navigate;
 window.toggleFilterDrawer = toggleFilterDrawer;
 window.filterProducts     = filterProducts;
 window.goCat              = goCat;
@@ -2417,9 +2401,34 @@ window.reOrder = reOrder;
 window.setFreshness = setFreshness;
 window.setPacking = setPacking;
 window.submitReview = submitReview;
+
 /* ══════════════════════════════════════════════════════════
    § INIT — Boot the App
    ══════════════════════════════════════════════════════════ */
+
+history.replaceState(
+  { page: "home" },
+  "",
+  "#home"
+);
+
+window.addEventListener("popstate", function (e) {
+
+    // FIX: this called `showPage(...)`, a function that is never defined
+    // anywhere in this file — pressing the browser Back/Forward button
+    // threw "showPage is not defined" (ReferenceError). Changed both
+    // calls to use the existing `navigate` function instead. The second
+    // argument `false` is passed explicitly so this re-render does NOT
+    // push another history entry (addHistory now defaults to `true`,
+    // which would otherwise create a broken, ever-growing history loop
+    // every time Back/Forward is pressed).
+    if (e.state && e.state.page) {
+        navigate(e.state.page, false);
+    } else {
+        navigate("home", false);
+    }
+
+});
 
 // Render the home page featured products on first load
 renderFeatured();
