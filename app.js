@@ -215,7 +215,7 @@ sizes:[
 
 ],  desc:"Full farm-fresh whole chicken. Dressed and ready to cook." },
   
-{ id:14,  name:"Chicken whole leg",   cat:"Leg Piece",  image:"image/new14.jpeg", weights:[
+{ id:14,  name:"Chicken whole leg",   cat:"Leg Piece",  image:"image/new14.jpeg",skin:skinOption, weights:[
 {
   kg:"500 g",
   price:139,
@@ -239,19 +239,19 @@ sizes:[
 
  { id:2,  name:"Chicken Leg Piece",   cat:"Leg Piece", image:"image/new20.png",weights:[
  {
+  kg:"500 g",
+  price:129,
+  mrp:229
+ },
+ {
   kg:"1 kg",
   price:249,
-  mrp:299
+  mrp:359
  },
  {
   kg:"2 kg",
   price:498,
   mrp:599
- },
- {
-  kg:"3 kg",
-  price:996,
-  mrp:1199
  }
 ],
 
