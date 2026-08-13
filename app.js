@@ -1319,7 +1319,7 @@ ${cart[id].skin ? " | " + cart[id].skin : ""}
       </div>`;
   }).join("");
 
-  const delivery = subtotal >= 399 ? 0 : 49; // free delivery above ₹499
+  const delivery = subtotal >= 499 ? 0 : 29; // free delivery above ₹499
   const gst      = Math.round(subtotal * 0.01);
   const total =
 subtotal
@@ -1575,7 +1575,7 @@ ${cart[id].skin ? " | " + cart[id].skin : ""}
       </div>`;
   }).join("");
 
-  const delivery = subtotal >= 399 ? 0 : 49;
+  const delivery = subtotal >= 499 ? 0 : 29;
   const gst      = Math.round(subtotal * 0.01);
   const total = Math.max(
     0,
@@ -1711,7 +1711,7 @@ const line = price * qty;
     };
   }).filter(item => item !== null);
 
-  const delivery    = subtotal >= 399 ? 0 : 49;
+  const delivery    = subtotal >= 499 ? 0 : 29;
   const gst         = Math.round(subtotal * 0.01);
   const total = Math.max(
     0,
