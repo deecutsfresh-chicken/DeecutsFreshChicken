@@ -3015,3 +3015,17 @@ button, input, select, textarea, .btn, .place-order-btn, .checkout-full-btn {
   .hero { padding-top: 70px; min-height: auto; }
   .hero-badge { display: none; }   /* avoid overlapping the shorter hero in landscape */
 }
+
+
+.diwali-banner-image {
+  margin: 12px;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.diwali-banner-image img {
+  width: 100%;
+  display: block;
+  height: auto;
+}
