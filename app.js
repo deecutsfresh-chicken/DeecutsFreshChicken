@@ -107,17 +107,17 @@ skin:skinOption,
   weights:[
  {
   kg:"500 g",
-  price:139,
+  price:109,
   mrp:199
  },
  {
   kg:"1 kg",
-  price:259,
+  price:219,
   mrp:359
  },
  {
   kg:"2 kg",
-  price:499,
+  price:439,
   mrp:699
  }
 ],
@@ -435,6 +435,65 @@ sizes:[
  "Large"
 ],  desc:"Rich in iron and proteins. Perfectly cleaned and fresh." },
  
+
+{
+  id:16,
+  name:"Mutton Curry Cut - Bon Curry",
+  cat:"Mutton Curry Cut",
+  image:"image/mutton1 (2).jpeg",
+  weights:[
+    {kg:"500 g",price:519,mrp:599},
+    {kg:"1 kg",price:1039,mrp:1199},
+    {kg:"2 kg",price:2079,mrp:2399}
+  ],
+  desc:"Fresh mutton curry cut, perfect for traditional cooking."
+},
+
+{
+  id:17,
+  name:"Mutton Boneless - Thani Curry",
+  cat:"Mutton Boneless",
+  image:"image/mutton1 (1).jpeg",
+  weights:[
+    {kg:"500 g",price:529,mrp:599},
+    {kg:"1 kg",price:1059,mrp:1199},
+    {kg:"2 kg",price:2019,mrp:2299}
+  ],
+  desc:"Fresh mutton boneless pieces, perfect for biryani and cooking."
+},
+
+
+/* =========================
+   DEECUTS EGG PRODUCTS
+========================= */
+
+{
+  id:18,
+  name:"Country Egg",
+  cat:"Country Egg",
+  image:"image/countryegg.jpeg",
+  weights:[
+    {kg:"5 Eggs",price:99,mrp:149},
+    {kg:"10 Eggs",price:199,mrp:299},
+    {kg:"20 Eggs",price:399,mrp:599}
+  ],
+  desc:"Fresh farm country eggs. Perfect for daily cooking."
+},
+
+{
+  id:19,
+  name:"White Egg",
+  cat:"White Egg",
+  image:"image/whiteegg.jpeg",
+  weights:[
+    {kg:"10 Eggs",price:69,mrp:99},
+    {kg:"20 Eggs",price:139,mrp:199},
+    {kg:"30 Eggs",price:209,mrp:359}
+  ],
+  desc:"Fresh white eggs carefully packed for your family."
+}
+
+
 ];
 
 /* ══════════════════════════════════════════════════════════
@@ -624,7 +683,15 @@ ${p.weights ? p.weights[0].kg : p.wt}
           <span class="btn-icon">+</span>
         </button>
       </div>
+<div class="product-img-fallback"
+style="${imgSrc ? 'display:none' : 'display:flex'}">
+${p.cat.includes("Egg") ? "🥚" : "🍗"}
+</div>
+
     </div>`;
+
+    
+
 }
 
 /* Home featured */
@@ -2482,3 +2549,4 @@ if (savedCoupon) {
     couponCode = savedCoupon;
     applySavedCoupon(savedCoupon);
 }
+
