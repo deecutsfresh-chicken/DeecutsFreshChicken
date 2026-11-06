@@ -90,6 +90,7 @@ FARM FRESH POULTRY
   <ul class="nav-links">
     <li><a id="nl-home" class="active" onclick="navigate('home')">Home</a></li>
     <li><a id="nl-shop" onclick="navigate('shop')">Shop</a></li>
+   <!-- <li><a id="nl-combo" onclick="navigate('combo')">🔥 Combo Offers</a></li> -->
     <li><a href="about.html">About Us</a></li>
     <li><a href="why.html">Why Deecuts</a></li>
     <li><a href="contact.html">Contact</a></li>
@@ -113,6 +114,22 @@ FARM FRESH POULTRY
 
 <!-- ══════════ HOME PAGE ══════════ -->
 <div class="page active" id="page-home">
+
+  <!-- DIWALI OFFER (home page only) -->
+  <section class="diwali-offer" id="diwaliOffer" aria-label="Diwali Special Offer">
+    <div class="diwali-card">
+      <img class="diwali-img" src="image/offer.png" alt="DEECUTS Diwali Special Offer"
+           loading="eager" decoding="async"
+           onerror="this.style.display='none';document.getElementById('diwaliFallback').style.display='flex';">
+      <div class="diwali-fallback" id="diwaliFallback">
+        <span class="diwali-tag">🪔 DIWALI SPECIAL</span>
+        <h2>Festive Chicken &amp; Mutton Combos</h2>
+        <p>Pre-book now for your Diwali celebration</p>
+      </div>
+    </div>
+    <button type="button" class="prebook-btn" id="prebookBtn">PRE-BOOK NOW →</button>
+  </section>
+
 
   <!-- HERO -->
   <div class="hero">
@@ -143,6 +160,20 @@ onclick="navigate('shop')">Shop Now →</button>
     <div class="trust-item"><div class="trust-icon">🚫</div><div><div class="trust-title">No Preservatives</div><div class="trust-sub">Chemical free & natural</div></div></div>
     <div class="trust-item"><div class="trust-icon">🚚</div><div><div class="trust-title">On-Time Delivery</div><div class="trust-sub">Delivered fresh at door</div></div></div>
   </div>
+
+<!-- COMBO OFFERS (HOME) 
+<div class="section" id="home-combos">
+  <div class="section-header">
+    <div class="section-label">Save More</div>
+    <div class="section-title">Combo <em>Offers</em></div>
+    <div class="section-divider"></div>
+  </div>
+  <div class="product-grid" id="home-combo-grid"></div>
+  <div style="text-align:center;margin-top:22px">
+    <button class="btn btn-primary" onclick="navigate('combo')">View All Combos →</button>
+  </div>
+</div> -->
+
 
   <!-- CATEGORIES -->
   <div class="section">
@@ -331,7 +362,7 @@ style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255
         <!----<span class="filter-pill" onclick="filterProducts('Boneless',this)">Boneless</span>
         <span class="filter-pill" onclick="filterProducts('Wings',this)">Wings</span>-->
 
-        
+       <!-- <span class="filter-pill" onclick="filterProducts('Combo',this)">Combos</span>-->
 <span class="filter-pill" onclick="filterProducts('Mutton Curry Cut',this)">Mutton Curry Cut</span>
 <span class="filter-pill" onclick="filterProducts('Mutton Boneless',this)">Mutton Boneless</span>
 
@@ -380,6 +411,42 @@ White Egg
     </div>
   </div>
 </div>
+
+
+
+<!-- DEECUTS COMBO OFFERS PAGE -->
+
+<div class="page" id="page-combo">
+
+  <div class="page-header">
+  <div class="breadcrumb">Home · <span>Combo Offers</span></div>
+  <h1>Combo Offers</h1>
+</div>
+
+  <section class="combo-page">
+
+    <div class="combo-heading">
+      <span>DEECUTS SPECIAL OFFERS</span>
+      <h1>Combo <em>Offers</em></h1>
+      <p>Fresh Chicken & Mutton Combos for your Family</p>
+    </div>
+<!--
+    <div class="combo-banner">
+      <h2>🐔 Chicken & 🥩 Mutton Combos</h2>
+      <p>More Meat. More Savings.</p>
+    </div> -->
+
+    <div class="product-grid" id="combo-grid"></div>
+
+    <button class="btn btn-outline"
+            onclick="navigate('home')">
+      ← Back to Home
+    </button>
+
+  </section>
+
+</div>
+
 
 <!-- ══════════ PRODUCT DETAIL ══════════ -->
 <div class="page" id="page-detail">
