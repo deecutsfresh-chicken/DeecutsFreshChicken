@@ -3029,3 +3029,167 @@ button, input, select, textarea, .btn, .place-order-btn, .checkout-full-btn {
   display: block;
   height: auto;
 }
+
+.diwali-offer{
+  width:100%; max-width:520px; margin:0 auto 22px; padding:0 16px;
+  text-align:center; position:relative; z-index:2; box-sizing:border-box;
+}
+.diwali-card{
+  border-radius:18px; overflow:hidden; border:2px solid #F5C542;
+  box-shadow:0 8px 28px rgba(0,0,0,.45), 0 0 0 4px rgba(176,18,26,.35);
+  background:linear-gradient(135deg,#8B0F16,#C4161C 55%,#8B0F16);
+}
+.diwali-img{ display:block; width:100%; height:auto; }   /* full image, never cropped */
+.diwali-fallback{
+  display:none; flex-direction:column; align-items:center; gap:6px;
+  padding:26px 18px; color:#fff;
+}
+.diwali-fallback h2{ margin:0; font-size:1.5rem; line-height:1.2; color:#F5C542; }
+.diwali-fallback p{ margin:0; font-size:.95rem; }
+.diwali-tag{
+  background:#F5C542; color:#7a0b11; font-weight:800; font-size:.75rem;
+  letter-spacing:1px; padding:5px 12px; border-radius:999px;
+}
+.prebook-btn{
+  display:inline-block; margin-top:14px; padding:14px 34px; border:none;
+  border-radius:12px; cursor:pointer; font-weight:800; font-size:1rem;
+  letter-spacing:.5px; color:#5a0a0f;
+  background:linear-gradient(135deg,#FFD966,#F5C542 50%,#E0A81E);
+  box-shadow:0 6px 18px rgba(245,197,66,.45);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.prebook-btn:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(245,197,66,.6); }
+.prebook-btn:active{ transform:scale(.97); }
+
+@media (min-width:768px){
+  .diwali-offer{ max-width:760px; margin-bottom:30px; }
+  .diwali-fallback h2{ font-size:2rem; }
+  .prebook-btn{ padding:16px 44px; font-size:1.1rem; }
+}
+
+
+
+/* ==============================
+   DEECUTS COMBO OFFERS PAGE
+============================== */
+
+.combo-page {
+    padding: 45px 6%;
+    min-height: 80vh;
+}
+
+.combo-heading {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.combo-heading span {
+    color: var(--purple);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+.combo-heading h1 {
+    font-size: clamp(32px, 5vw, 55px);
+    margin: 12px 0;
+    color: var(--dark);
+}
+
+.combo-heading h1 em {
+    color: var(--purple);
+}
+
+.combo-heading p {
+    color: var(--muted);
+    font-size: 15px;
+}
+
+.combo-banner {
+    text-align: center;
+    padding: 25px 15px;
+    margin-bottom: 30px;
+    border-radius: 20px;
+    background: linear-gradient(
+        135deg,
+        #f3eaff,
+        #fff8e8
+    );
+}
+
+.combo-banner h2 {
+    color: #461877;
+    font-size: 24px;
+}
+
+.combo-banner p {
+    color: #777;
+    margin-top: 8px;
+}
+
+#combo-grid {
+    margin-bottom: 35px;
+}
+
+#page-combo .product-card {
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+#page-combo .product-img {
+    height: 220px;
+}
+
+#page-combo .product-name {
+    font-weight: 700;
+}
+
+@media(max-width:768px) {
+
+    .combo-page {
+        padding: 25px 15px;
+    }
+
+    .combo-banner h2 {
+        font-size: 19px;
+    }
+
+    #page-combo .product-img {
+        height: 150px;
+    }
+
+}
+
+
+/* ===== COMBO CARDS ===== */
+.combo-card { border-color: rgba(245,200,66,.7); }
+.combo-card .product-badge {
+  background: linear-gradient(135deg, #F5C842, #e0a800);
+  color: #0F0B15;
+}
+.combo-card .product-discount-badge {
+  background: linear-gradient(135deg, #059669, #047857);
+  color: #fff;
+}
+.combo-items {
+  list-style: none;
+  margin: 8px 0 10px;
+  padding: 10px;
+  background: var(--purple-pale);
+  border-radius: 10px;
+}
+.combo-items li {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.6;
+}
+.combo-pct {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--green);
+  background: #d1fae5;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
