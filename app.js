@@ -491,7 +491,56 @@ sizes:[
     {kg:"30 Eggs",price:209,mrp:359}
   ],
   desc:"Fresh white eggs carefully packed for your family."
-}
+},
+
+
+/* =========================
+   DEECUTS COMBO OFFERS
+========================= */
+
+{
+    id: 20,
+    name: "Small Combo",
+    cat: "Combo",
+    image: "image/offercom (1).jpeg",
+    weights: [
+        { kg: "1 Combo", price: 249, mrp: 299 }
+    ],
+    desc: "750g Fresh Chicken + 3 Chicken Lollipops"
+},
+
+{
+    id: 21,
+    name: "Saver Combo",
+    cat: "Combo",
+    image: "image/offercom (2).jpeg",
+    weights: [
+        { kg: "1 Combo", price: 299, mrp: 349 }
+    ],
+    desc: "750g Fresh Chicken + 500g Chicken Leg Pieces"
+},
+
+{
+    id: 22,
+    name: "Family Combo",
+    cat: "Combo",
+    image: "image/offercom (4).jpeg",
+    weights: [
+        { kg: "1 Combo", price: 649, mrp: 699 }
+    ],
+    desc: "500g Fresh Mutton Thani Curry + 500g Chicken Leg Pieces"
+},
+
+{
+    id: 23,
+    name: "Mega Meat Combo",
+    cat: "Combo",
+    image: "image/offercom (3).jpeg",
+    weights: [
+        { kg: "1 Combo", price: 999, mrp: 1049 }
+    ],
+    desc: "750g Fresh Mutton Thani Curry + 1kg Fresh Chicken"
+},
 
 
 ];
@@ -608,6 +657,12 @@ function navigate(p, addHistory = true) {
     renderShop("All");
   }
 
+  
+if(p==="combo"){
+    renderComboPage();
+}
+
+
   if(p==="cart") renderCart();
 
   if(p==="checkout") renderCheckout();
@@ -696,14 +751,14 @@ ${p.cat.includes("Egg") ? "🥚" : "🍗"}
 
 /* Home featured */
 function renderFeatured(){
-
- const el=document.getElementById("featured-grid");
-
- if(el){
-  el.innerHTML = products.slice(0,6)
-  .map(productCardHTML)
-  .join("");
- }
+  const el = document.getElementById("featured-grid");
+  if (el) {
+    el.innerHTML = products
+      .filter(p => p.cat !== "Combo")
+      .slice(0, 6)
+      .map(productCardHTML)
+      .join("");
+  }
 
 }
 
@@ -713,7 +768,7 @@ function renderFeatured(){
 function renderShop(cat){
 
 let fp = cat==="All"
-? [...products]
+? products.filter(p => p.cat !== "Combo")
 : products.filter(p=>p.cat===cat);
 
 
@@ -2550,3 +2605,78 @@ if (savedCoupon) {
     applySavedCoupon(savedCoupon);
 }
 
+
+
+
+
+/* PRE BOOK NOW → COMBO OFFERS */
+
+const prebookBtn = document.getElementById("prebookBtn");
+
+if (prebookBtn) {
+
+    prebookBtn.addEventListener("click", function(e) {
+
+        e.preventDefault();
+
+        navigate("combo");
+
+    });
+
+}
+
+
+
+/* RENDER COMBO OFFERS */
+
+function renderComboPage() {
+  const grid = document.getElementById("combo-grid");
+  if (!grid) return;
+  grid.innerHTML = products
+    .filter(p => p.cat === "Combo")
+    .map(comboCardHTML)
+    .join("");
+}
+
+
+/* COMBO CARD: shows included items + savings */
+function comboCardHTML(p) {
+  const w = p.weights[0];
+  const save = w.mrp - w.price;
+  const pct = Math.round((save / w.mrp) * 100);
+  const items = p.desc.split("+").map(s => s.trim());
+
+  return `
+    <div class="product-card combo-card" onclick="showDetail(${p.id})">
+      <div class="product-img">
+        <img src="${p.image}" alt="${p.name}" loading="lazy"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="product-img-fallback" style="display:none">🍗</div>
+        <div class="product-badge">COMBO</div>
+        <div class="product-discount-badge">SAVE ₹${save}</div>
+      </div>
+      <div class="product-body">
+        <div class="product-name">${p.name}</div>
+        <ul class="combo-items">
+          ${items.map(i => `<li>✔ ${i}</li>`).join("")}
+        </ul>
+        <div class="product-price-row">
+          <span class="product-price">₹${w.price}</span>
+          <span class="product-mrp">₹${w.mrp}</span>
+          <span class="combo-pct">${pct}% OFF</span>
+        </div>
+        <button class="add-to-cart-btn" onclick="event.stopPropagation();quickAdd(${p.id})">
+          <span>Add Combo</span><span class="btn-icon">+</span>
+        </button>
+      </div>
+    </div>`;
+}
+
+function renderHomeCombos() {
+  const el = document.getElementById("home-combo-grid");
+  if (!el) return;
+  el.innerHTML = products
+    .filter(p => p.cat === "Combo")
+    .map(comboCardHTML)
+    .join("");
+}
