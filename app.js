@@ -101,7 +101,7 @@ const products = [
  id:1,
  name:"Chicken Curry Cut",
  cat:"Curry Cut",
- image:"image/new1.png",
+ image:"image/chickencuurycut.jpeg",
 skin:skinOption,
 
   weights:[
