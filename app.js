@@ -107,17 +107,17 @@ skin:skinOption,
   weights:[
  {
   kg:"500 g",
-  price:109,
+  price:129,
   mrp:199
  },
  {
   kg:"1 kg",
-  price:219,
+  price:249,
   mrp:359
  },
  {
   kg:"2 kg",
-  price:439,
+  price:499,
   mrp:699
  }
 ],
@@ -1326,39 +1326,87 @@ if (saved) {
 
     couponCode = localStorage.getItem("couponCode") || "";
 
+
 if (couponCode) {
 
-  let subtotal = 0;
+    let subtotal = 0;
 
-  Object.values(cart).forEach(item => {
-    subtotal += item.weight.price * item.qty;
-  });
+    Object.values(cart).forEach(item => {
+        subtotal += (item.weight?.price || 0) * item.qty;
+    });
 
-  switch (couponCode) {
+    discountAmount = 0;
 
-    case "DEECUTS10":
-      discountAmount = Math.round(subtotal * 0.10);
-      break;
+    switch (couponCode) {
 
-    case "SAVE50":
-      discountAmount = 50;
-      break;
+        case "DEECUTS10":
+            if (subtotal >= 500) {
+                discountAmount = Math.round(subtotal * 0.10);
+            }
+            break;
 
-    case "FIRST100":
-      discountAmount = 100;
-      break;
+        case "SAVE50":
+            if (subtotal >= 300) {
+                discountAmount = 50;
+            }
+            break;
 
-  }
+        case "FIRST100":
+            if (subtotal >= 1000) {
+                discountAmount = 100;
+            }
+            break;
 
-  // FIX: this guard used to live at the top level referencing an
-  // undefined `subtotal`, which threw a ReferenceError on every page
-  // load and stopped the rest of the script from running. It now lives
-  // here where `subtotal` is actually in scope.
-  if (discountAmount > subtotal) {
-    discountAmount = subtotal;
-  }
+        case "CHICKEN20":
+            if (subtotal >= 1500) {
+                discountAmount = Math.round(subtotal * 0.20);
+            }
+            break;
+
+        case "MEAT100":
+            if (subtotal >= 1000) {
+                discountAmount = 100;
+            }
+            break;
+
+        case "FESTIVE150":
+            if (subtotal >= 2000) {
+                discountAmount = 150;
+            }
+            break;
+
+        case "WELCOME75":
+            if (subtotal >= 750) {
+                discountAmount = 75;
+            }
+            break;
+
+        case "COMBO50":
+            if (subtotal >= 500) {
+                discountAmount = 50;
+            }
+            break;
+
+        case "MUTTON10":
+            if (subtotal >= 2000) {
+                discountAmount = Math.round(subtotal * 0.10);
+            }
+            break;
+
+        case "BIGSAVE200":
+            if (subtotal >= 3000) {
+                discountAmount = 200;
+            }
+            break;
+
+    }
+
+    if (discountAmount > subtotal) {
+        discountAmount = subtotal;
+    }
 
 }
+
 
   } catch (err) {
 
@@ -1567,6 +1615,78 @@ function applyCoupon() {
             toast("₹100 Discount Applied 🎉");
             break;
 
+            
+case "CHICKEN20":
+    if (subtotal < 1500) {
+        toast("Minimum order ₹1500 required");
+        return;
+    }
+    discountAmount = Math.round(subtotal * 0.20);
+    couponCode = code;
+    toast("20% Discount Applied 🎉");
+    break;
+
+case "MEAT100":
+    if (subtotal < 1000) {
+        toast("Minimum order ₹1000 required");
+        return;
+    }
+    discountAmount = 100;
+    couponCode = code;
+    toast("₹100 Discount Applied 🎉");
+    break;
+
+case "FESTIVE150":
+    if (subtotal < 2000) {
+        toast("Minimum order ₹2000 required");
+        return;
+    }
+    discountAmount = 150;
+    couponCode = code;
+    toast("₹150 Discount Applied 🎉");
+    break;
+
+case "WELCOME75":
+    if (subtotal < 750) {
+        toast("Minimum order ₹750 required");
+        return;
+    }
+    discountAmount = 75;
+    couponCode = code;
+    toast("₹75 Discount Applied 🎉");
+    break;
+
+case "COMBO50":
+    if (subtotal < 500) {
+        toast("Minimum order ₹500 required");
+        return;
+    }
+    discountAmount = 50;
+    couponCode = code;
+    toast("₹50 Combo Discount Applied 🎉");
+    break;
+
+case "MUTTON10":
+    if (subtotal < 2000) {
+        toast("Minimum order ₹2000 required");
+        return;
+    }
+    discountAmount = Math.round(subtotal * 0.10);
+    couponCode = code;
+    toast("10% Discount Applied 🎉");
+    break;
+
+case "BIGSAVE200":
+    if (subtotal < 3000) {
+        toast("Minimum order ₹3000 required");
+        return;
+    }
+    discountAmount = 200;
+    couponCode = code;
+    toast("₹200 Discount Applied 🎉");
+    break;
+
+
 
         default:
             toast("Invalid Coupon Code ❌");
@@ -1584,6 +1704,7 @@ function applyCoupon() {
     renderCart();
 }
 
+
 function applySavedCoupon(code) {
 
     let subtotal = 0;
@@ -1597,15 +1718,63 @@ function applySavedCoupon(code) {
     switch (code) {
 
         case "DEECUTS10":
-            discountAmount = Math.round(subtotal * 0.10);
+            if (subtotal >= 500) {
+                discountAmount = Math.round(subtotal * 0.10);
+            }
             break;
 
         case "SAVE50":
-            discountAmount = 50;
+            if (subtotal >= 300) {
+                discountAmount = 50;
+            }
             break;
 
         case "FIRST100":
-            discountAmount = 100;
+            if (subtotal >= 1000) {
+                discountAmount = 100;
+            }
+            break;
+
+        case "CHICKEN20":
+            if (subtotal >= 1500) {
+                discountAmount = Math.round(subtotal * 0.20);
+            }
+            break;
+
+        case "MEAT100":
+            if (subtotal >= 1000) {
+                discountAmount = 100;
+            }
+            break;
+
+        case "FESTIVE150":
+            if (subtotal >= 2000) {
+                discountAmount = 150;
+            }
+            break;
+
+        case "WELCOME75":
+            if (subtotal >= 750) {
+                discountAmount = 75;
+            }
+            break;
+
+        case "COMBO50":
+            if (subtotal >= 500) {
+                discountAmount = 50;
+            }
+            break;
+
+        case "MUTTON10":
+            if (subtotal >= 2000) {
+                discountAmount = Math.round(subtotal * 0.10);
+            }
+            break;
+
+        case "BIGSAVE200":
+            if (subtotal >= 3000) {
+                discountAmount = 200;
+            }
             break;
 
     }
@@ -1615,6 +1784,7 @@ function applySavedCoupon(code) {
     }
 
 }
+
 
 /** Change cart item quantity (handles zero → remove) */
 function chgCart(id, d) {
